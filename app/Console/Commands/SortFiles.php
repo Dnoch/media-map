@@ -78,13 +78,19 @@ class SortFiles extends Command
         $downloads = [];
         foreach ($root_folders as $folder) {
             $item = explode('/', $folder);
+            if (!isset ($item [1])) {
+                $item = explode("\\", $folder);
+            }
             $item = $item[sizeof($item) - 1];
             $downloads[] = $this->get_or_save_download($item, 2);
         }
 
         foreach ($root_files as $file) {
-            $item = $file->getRelativePathname();
-            $item = explode('/', $item);
+            $item_file = $file->getRelativePathname();
+            $item = explode('/', $item_file);
+            if (!isset ($item [1])) {
+                $item = explode("\\", $item_file);
+            }
             $item = $item[sizeof($item) - 1];
             $downloads[] = $this->get_or_save_download($item, 1);
         }

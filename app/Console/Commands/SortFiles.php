@@ -99,10 +99,22 @@ class SortFiles extends Command
 
     public function copy_download ($download)
     {
-        $letter = strtoupper($download->name[0]);
+        $words = explode('.', $download->name[0]);
+        $word = $words[0];
+        if (strtolower($words[0]) == "the") {
+            if (isset ($words[1])) {
+                $word = $words[1];
+            }
+        }
+        $letter = strtoupper($word);
         $drive = Drive::where('starting_letter', '<=', $letter)
             ->where('ending_letter', '>=', $letter)
             ->first();
+        if (!isset ($drive)) {
+            $drive = Drive::where('starting_letter', '<=', 'A')
+                ->where('ending_letter', '>=', 'A')
+                ->first();
+        }
         if ($download->type_id == 1) {
             //file
             File::copy($this->path . '/' . $download->name, $drive->path . $download->name);

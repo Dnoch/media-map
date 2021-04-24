@@ -84,6 +84,8 @@ class SortFiles extends Command
 
         foreach ($root_files as $file) {
             $item = $file->getRelativePathname();
+            $item = explode('/', $item);
+            $item = $item[sizeof($item) - 1];
             $downloads[] = $this->get_or_save_download($item, 1);
         }
         return $downloads;
@@ -99,13 +101,40 @@ class SortFiles extends Command
 
     public function copy_download ($download)
     {
-        $words = explode('.', $download->name[0]);
-        $word = $words[0];
-        if (strtolower($words[0]) == "the") {
-            if (isset ($words[1])) {
-                $word = $words[1];
+        //get season
+        $parts = explode (".", $download->name);
+        $count = 0;
+        $season_position = 0;
+        $season = "01";
+        foreach ($parts as $part)
+        {
+            if (strcmp ('S', $part[0]) == 0 && strlen ($part) == 6 && strcmp ('E', $part[3]) == 0)
+            {
+                $season = $part [1] . $part [2];
+                $season_position = $count;
+            }
+            $count ++;
+        }
+        //get show name
+        $show = "";
+        for ($i = 0; $i < $season_position; $i++)
+        {
+            if (strcmp ($show, "") == 0)
+            {
+                $show = $parts [$i];
+            }
+            else
+            {
+                $show .= " " . $parts [$i];
             }
         }
+        $words = explode (".", $download->name[0]);
+        $word = strtoupper ($words[0]);
+        if (strcmp ($word, "THE") == 0)
+        {
+            $word = $words [1];
+        }
+
         $letter = strtoupper($word);
         $drive = Drive::where('starting_letter', '<=', $letter)
             ->where('ending_letter', '>=', $letter)
@@ -115,12 +144,15 @@ class SortFiles extends Command
                 ->where('ending_letter', '>=', 'A')
                 ->first();
         }
+        $series_folder = $drive->path . $show;
+        $season_folder = $series_folder . "/Season $season/";
+
         if ($download->type_id == 1) {
             //file
-            File::copy($this->path . '/' . $download->name, $drive->path . $download->name);
+            File::copy($this->path . '/' . $download->name, $season_folder . $download->name);
         } else {
             //directory
-            File::copyDirectory($this->path . '/' . $download->name, $drive->path . $download->name);
+            File::copyDirectory($this->path . '/' . $download->name, $season_folder . $download->name);
         }
         $download->status_id = 2;
         $download->save();

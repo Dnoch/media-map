@@ -54,7 +54,7 @@ class SortFiles extends Command
                 $copied ++;
             }
             else if ($download->status_id == 2) {
-                $date_cmp = Carbon::parse($download->created_at)->addDays(10);
+                $date_cmp = Carbon::parse($download->created_at)->addDays(20);
                 if ($date_cmp->lessThanOrEqualTo(Carbon::now())) {
                     $this->delete_download ($download);
                     $deleted ++;
